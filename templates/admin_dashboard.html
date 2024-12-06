@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Genesis Global Medical Team{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mb-4">Admin Dashboard</h1>
+
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <form action="{{ url_for('admin.search') }}" method="GET" class="d-flex">
+                <input type="text" name="query" class="form-control me-2" placeholder="Search patients by name, phone, or age" required>
+                <button type="submit" class="btn btn-primary">Search</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card dashboard-card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Total Patients</h5>
+                    <h2 class="card-text">{{ patients|length }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card dashboard-card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Recent Activities</h5>
+                    <h2 class="card-text">{{ recent_activities|length }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card dashboard-card bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title">New Patients (This Month)</h5>
+                    <h2 class="card-text">{{ patient_growth.data[-1] if patient_growth.data else 0 }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Patient Count</h5>
+                </div>
+                <div class="card-body">
+                    <div id="patientCountChart"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Weight Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <div id="weightDistributionChart"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Blood Pressure Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <div id="bpDistributionChart"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Combined Metrics</h5>
+                </div>
+                <div class="card-body">
+                    <div id="combinedMetricsChart"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Recent Activities</h5>
+                </div>
+                <div class="card-body">
+                    {% for activity in recent_activities[:5] %}
+                    <div class="mb-2">
+                        <strong>{{ activity.patient_name }}</strong>: {{ activity.action }}
+                        <small class="text-muted d-block">
+                            {% if activity.timestamp is string %}
+                                {{ activity.timestamp }}
+                            {% else %}
+                                {{ activity.timestamp.strftime('%Y-%m-%d %H:%M') }}
+                            {% endif %}
+                            by {{ activity.admin_name }}
+                        </small>
+                    </div>
+                    {% endfor %}
+                    <a href="{{ url_for('admin.recent_activities') }}" class="btn btn-outline-primary mt-3">View All Activities</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Recent Patients</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Phone Number</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for patient in patients[:5] %}
+                                <tr>
+                                    <td>{{ patient.first_name }} {{ patient.last_name }}</td>
+                                    <td>{{ patient.phone_number }}</td>
+                                    <td>
+                                        <a href="{{ url_for('patient.view', patient_id=patient.id) }}" class="btn btn-sm btn-outline-info">View</a>
+                                        <a href="{{ url_for('patient.update', patient_id=patient.id) }}" class="btn btn-sm btn-outline-warning">Update</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        <a href="{{ url_for('admin.patient_list') }}" class="btn btn-outline-primary">View All Patients</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+    // Patient Count Chart
+    var patientCountData = [{
+        x: {{ patient_growth.labels | tojson }},
+        y: {{ patient_growth.data | tojson }},
+        type: 'scatter'
+    }];
+
+    var patientCountLayout = {
+        title: 'Patient Growth',
+        xaxis: { title: 'Month' },
+        yaxis: { title: 'New Patients' }
+    };
+
+    Plotly.newPlot('patientCountChart', patientCountData, patientCountLayout);
+
+    // Weight Distribution Chart
+    var weightData = [{
+        x: {{ weight_data | tojson }},
+        type: 'histogram',
+        nbinsx: 20
+    }];
+
+    var weightLayout = {
+        title: 'Weight Distribution',
+        xaxis: { title: 'Weight (kg)' },
+        yaxis: { title: 'Count' }
+    };
+
+    Plotly.newPlot('weightDistributionChart', weightData, weightLayout);
+
+    // Blood Pressure Distribution Chart
+    var bpData = [{
+        y: {{ systolic_data | tojson }},
+        type: 'box',
+        name: 'Systolic'
+    }, {
+        y: {{ diastolic_data | tojson }},
+        type: 'box',
+        name: 'Diastolic'
+    }];
+
+    var bpLayout = {
+        title: 'Blood Pressure Distribution',
+        yaxis: { title: 'mmHg' }
+    };
+
+    Plotly.newPlot('bpDistributionChart', bpData, bpLayout);
+
+    // Combined Metrics Chart
+    var combinedData = [{
+        x: {{ age_data | tojson }},
+        y: {{ weight_data | tojson }},
+        mode: 'markers',
+        type: 'scatter',
+        name:'Weight vs Age'
+    }, {
+        x: {{ age_data | tojson }},
+        y: {{ height_data | tojson }},
+        mode: 'markers',
+        type: 'scatter',
+        name: 'Height vs Age'
+    }];
+
+    var combinedLayout = {
+        title: 'Combined Metrics',
+        xaxis: { title: 'Age' },
+        yaxis: { title: 'Value' }
+    };
+
+    Plotly.newPlot('combinedMetricsChart', combinedData, combinedLayout);
+</script>
+{% endblock %}
+

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Update Patient - Genesis Global Medical Team{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Update Patient Information</h1>
+    <form method="POST">
+        <div class="mb-3">
+            <label for="first_name" class="form-label">First Name</label>
+            <input type="text" class="form-control" id="first_name" name="first_name" value="{{ patient.first_name }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="last_name" class="form-label">Last Name</label>
+            <input type="text" class="form-control" id="last_name" name="last_name" value="{{ patient.last_name }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="phone_number" class="form-label">Phone Number</label>
+            <input type="tel" class="form-control" id="phone_number" name="phone_number" value="{{ patient.phone_number }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="age" class="form-label">Age</label>
+            <input type="number" class="form-control" id="age" name="age" value="{{ patient.age }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="weight" class="form-label">Weight (kg)</label>
+            <input type="number" step="0.1" class="form-control" id="weight" name="weight" value="{{ patient.weight }}">
+        </div>
+        <div class="mb-3">
+            <label for="height" class="form-label">Height (cm)</label>
+            <input type="number" step="0.1" class="form-control" id="height" name="height" value="{{ patient.height }}">
+        </div>
+        <div class="mb-3">
+            <label for="blood_pressure" class="form-label">Blood Pressure (systolic/diastolic)</label>
+            <input type="text" class="form-control" id="blood_pressure" name="blood_pressure" value="{{ patient.blood_pressure }}" placeholder="120/80">
+        </div>
+        <button type="submit" class="btn btn-primary">Update Patient</button>
+    </form>
+</div>
+{% endblock %}
+
