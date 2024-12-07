@@ -1,23 +1,18 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from app.models import Patient, Activity
+from app.auth import role_required
 
 bp = Blueprint('reception', __name__, url_prefix='/reception')
 
 @bp.route('/dashboard')
+@role_required('Reception')
 def dashboard():
-    if session.get('role') != 'Reception':
-        flash('Access denied. Reception privileges required.', 'error')
-        return redirect(url_for('auth.dashboard'))
-
     recent_patients = Patient.get_all()[:5]  # Get the 5 most recent patients
     return render_template('reception_dashboard.html', recent_patients=recent_patients)
 
 @bp.route('/create_patient', methods=['GET', 'POST'])
+@role_required('Reception')
 def create_patient():
-    if session.get('role') != 'Reception':
-        flash('Access denied. Reception privileges required.', 'error')
-        return redirect(url_for('auth.dashboard'))
-
     if request.method == 'POST':
         first_name = request.form['first_name']
         last_name = request.form['last_name']
@@ -41,12 +36,19 @@ def create_patient():
     return render_template('create_patient.html')
 
 @bp.route('/search')
+@role_required('Reception')
 def search():
-    if session.get('role') != 'Reception':
-        flash('Access denied. Reception privileges required.', 'error')
-        return redirect(url_for('auth.dashboard'))
-
     query = request.args.get('query', '')
     patients = Patient.search(query)
     return render_template('search_results.html', patients=patients, query=query)
+
+@bp.route('/patient/<string:patient_id>')
+@role_required('Reception')
+def view_patient(patient_id):
+    patient = Patient.get_by_id(patient_id)
+    if patient:
+        return render_template('patient_view.html', patient=patient)
+    else:
+        flash('Patient not found', 'error')
+        return redirect(url_for('reception.dashboard'))
 

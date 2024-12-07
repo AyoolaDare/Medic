@@ -7,20 +7,20 @@
     <h1 class="mb-4">Reception Dashboard</h1>
 
     <div class="row mb-4">
-        <div class="col-md-6">
+        <div class="col-md-6 mb-3">
             <div class="card">
                 <div class="card-header">
                     <h5 class="card-title">Patient Search</h5>
                 </div>
                 <div class="card-body">
                     <form action="{{ url_for('reception.search') }}" method="GET" class="d-flex">
-                        <input type="text" name="query" class="form-control me-2" placeholder="Search patients by name or phone number" required>
+                        <input type="text" name="query" class="form-control me-2" placeholder="Search patients" required>
                         <button type="submit" class="btn btn-primary">Search</button>
                     </form>
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-6 mb-3">
             <div class="card">
                 <div class="card-header">
                     <h5 class="card-title">Create New Patient</h5>
@@ -56,7 +56,7 @@
                                     <td>{{ patient.phone_number }}</td>
                                     <td>{{ patient.created_at }}</td>
                                     <td>
-                                        <a href="{{ url_for('patient.view', patient_id=patient.id) }}" class="btn btn-sm btn-outline-info">View</a>
+                                        <a href="{{ url_for('reception.view_patient', patient_id=patient.id) }}" class="btn btn-sm btn-outline-info">View</a>
                                     </td>
                                 </tr>
                                 {% endfor %}
